@@ -10,7 +10,7 @@ public class SimpleLexer {
     public static void main(String[] args) {
         SimpleLexer lexer = new SimpleLexer();
 
-        String script = "int age = 45";
+        String script = "int name = 18";
         System.out.println("parse :" + script);
         SimpleTokenReader tokenReader = lexer.tokenize(script);
         dump(tokenReader);
@@ -114,7 +114,10 @@ public class SimpleLexer {
                             state = initToken(ch); // 让 initToken 去添加
                         }
                         break;
-                    case Assignment:  // 这个一定要加
+                    // switch case 不加 break 的话 那么下面的所有 case 中的语句都会执行，直到遇到第一个 break
+                    // 所以等号会到最后一个 break 跳出，遇到符合条件的 char 状态机就会更新，如果不加这个 case 的话状态机就一直不会更新
+                    // Assignment => = => break; 空格没有对应的状态机不会进入 switch ；IntLiteral => 1 => 8 => break;
+                    case Assignment:  // 由于之前这里没有加 case 而经过 = 之后状态机一直是 Assignment 然而switch 中没有，所以获取到的后面的 18 都不会在 switch 中进行处理
 
                     case IntLiteral:
                         if (isDigit(ch)){
@@ -176,14 +179,11 @@ public class SimpleLexer {
 
     private static void dump(SimpleTokenReader simpleTokenReader){
 
-        System.out.println("text\ttype");
+        System.out.println("type\ttext");
         Token token = null;
         while ((token= simpleTokenReader.read())!=null){
-
-            System.out.println(token.getText()+"\t\t"+token.getType());
+            System.out.println(token.getType()+"\t\t"+token.getText());
         }
-
-
     }
 
 
@@ -231,12 +231,6 @@ public class SimpleLexer {
         }
     }
 
-
-
-
-
-
-
     // 存储 token 的值 和 类型
     private final class SimpleToken implements Token{
 
@@ -273,6 +267,5 @@ public class SimpleLexer {
 
         // 用户定义的变量
         Identifier,Id,
-
         }
 }
