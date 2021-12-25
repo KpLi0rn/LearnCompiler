@@ -1,4 +1,4 @@
-package class2;
+package lexer;
 
 import java.io.CharArrayReader;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ public class SimpleLexer {
 
 
     // 字符判断
-    private boolean isAlpha(int ch){
+    private boolean isAlpha(int ch) {
         return ch>='a' && ch <= 'z'|| ch >='A' && ch <= 'Z';
     }
     // 数字判断

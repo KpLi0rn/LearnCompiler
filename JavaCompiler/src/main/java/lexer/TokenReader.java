@@ -1,4 +1,4 @@
-package class2;
+package lexer;
 
 /**
  * 就是从 token 数组中进行遍历吧

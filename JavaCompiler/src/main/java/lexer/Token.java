@@ -1,4 +1,4 @@
-package class2;
+package lexer;
 
 public interface Token {
     /**
