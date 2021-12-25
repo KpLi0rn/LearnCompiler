@@ -129,7 +129,7 @@ func Tokenize(code string) []SimpleToken {
 			} else {
 				// 可以确定为 变量了
 				// 因为可以确定不是 int 所以状态机进行变更
-				state = DfaState2Str[Id]
+				state = DfaState2Str[Identifier]
 				tokenText = append(tokenText, ch)
 			}
 			break
@@ -142,13 +142,7 @@ func Tokenize(code string) []SimpleToken {
 				state = initToken(ch)
 			}
 			break
-		case "Id": // 变量
-			if isDigit(ch) || isAlpha(ch){
-				tokenText = append(tokenText, ch)
-			}else {
-				state = initToken(ch)
-			}
-			break
+
 		default:
 		}
 	}
