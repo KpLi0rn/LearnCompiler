@@ -13,7 +13,7 @@ import java.util.Collections;
 public class Calculator {
 
     public static void main(String[] args) throws Exception {
-        String code = "2+5*5+4";
+        String code = "2+3+4+5";
         Calculator calculator = new Calculator();
         calculator.evaluate(code);
 
@@ -92,30 +92,58 @@ public class Calculator {
 
 
     /**
-     * 加法表达式
+     * 加法表达式, 这样就变成左递归了... 有点牛逼，左递归
+     * add = multiplicative (+multiplicative)*
      * @param tokens
      * @return
      */
     public SimpleAstNode additive(TokenReader tokens) throws Exception{
-        // 1+2+3*4 =>
         SimpleAstNode child1 = multiplicative(tokens);
         SimpleAstNode node = child1; // 乘法子树
-        Token token = tokens.peek();
-        if (token != null && child1 != null){
-            if (token.getType() == TokenType.Plus){ // 如果是 + 号
-                token = tokens.read(); // 对加号进行消耗
-                SimpleAstNode child2 = additive(tokens); //
-                if (child2 != null){
+        if (child1 != null){
+            while(true){
+                Token token = tokens.peek();
+                if (token!=null && token.getType() == TokenType.Plus){ // +
+                    token = tokens.read(); // 对加号进行消耗
+                    SimpleAstNode child2 = multiplicative(tokens); //
                     node = new SimpleAstNode(AstNodeType.Additive,token.getText()); // 创建 * 的节点，反之返回树，学到了
                     node.addChildren(child1);
                     node.addChildren(child2);
-                } else {
-                    throw new Exception("invalid additive expression, expecting the right part.");
+                    child1 = node; // child1 在while中就依靠这个来变化 明白了 往节点里不停的加 +
+
+                }else {
+                    break;
                 }
             }
+
         }
         return node;
     }
+
+    /**
+     * 右递归
+     */
+
+//    public SimpleAstNode additive(TokenReader tokens) throws Exception{
+//        // multiplicative + add  , multiplicative 到最后为 int ，相当于 int + addexpression => 右递归
+//        SimpleAstNode child1 = multiplicative(tokens);
+//        SimpleAstNode node = child1; // 乘法子树
+//        Token token = tokens.peek();
+//        if (token != null && child1 != null){
+//            if (token.getType() == TokenType.Plus) { // 如果是 + 号
+//                token = tokens.read(); // 对加号进行消耗
+//                SimpleAstNode child2 = additive(tokens); //
+//                if (child2 != null){
+//                    node = new SimpleAstNode(AstNodeType.Additive, token.getText()); // 创建 * 的节点，反之返回树，学到了
+//                    node.addChildren(child1);
+//                    node.addChildren(child2);
+//                }else {
+//                    throw new Exception("invalid multiplicative expression, expecting the right part.");
+//                }
+//            }
+//        }
+//        return node;
+//    }
 
     /**
      * 乘法表达式
