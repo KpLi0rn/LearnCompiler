@@ -13,7 +13,7 @@ import java.util.Collections;
 public class Calculator {
 
     public static void main(String[] args) throws Exception {
-        String code = "2+3*5";
+        String code = "2+5*5+4";
         Calculator calculator = new Calculator();
         calculator.evaluate(code);
 
@@ -64,7 +64,7 @@ public class Calculator {
             case Additive:
                 AstNode child1 = node.getChildren().get(0);
                 // 不断进行递归求解
-                int value1 = evaluate(child1,indent + "\t");
+                int value1 = evaluate(child1,indent + "\t"); // 计算当前节点下的所有值的和
                 AstNode child2 = node.getChildren().get(1);
                 int value2 = evaluate(child2,indent + "\t");
                 if (node.getText().equals("+")){ // 递归最后运算对逻辑
