@@ -10,9 +10,10 @@ public class SimpleLexer {
     public static void main(String[] args) {
         SimpleLexer lexer = new SimpleLexer();
 
-        String script = "int name = 18";
+        String script = "2+3*5";
         System.out.println("parse :" + script);
         SimpleTokenReader tokenReader = lexer.tokenize(script);
+
         dump(tokenReader);
     }
 
@@ -71,13 +72,33 @@ public class SimpleLexer {
             newState = DfaState.Assignment;
             token.type = TokenType.Assignment;
             tokenText.append(ch);
+        }else if (ch == '+') {
+            newState = DfaState.Plus;
+            token.type = TokenType.Plus;
+            tokenText.append(ch);
+        }else if (ch == ';') {
+            newState = DfaState.SemiColon;
+            token.type = TokenType.SemiColon;
+            tokenText.append(ch);
+        }else if (ch == '-') {
+            newState = DfaState.Minus;
+            token.type = TokenType.Minus;
+            tokenText.append(ch);
+        }else if (ch == '*') {
+            newState = DfaState.Star;
+            token.type = TokenType.Star;
+            tokenText.append(ch);
+        }else if (ch == '/') {
+            newState = DfaState.Slash;
+            token.type = TokenType.Slash;
+            tokenText.append(ch);
         }
         // 如果上面三个都没有走进去的话，那么就没遇到开始状态机的机会，所以还是 init
         return newState;
     }
 
     // int age = 10
-    private SimpleTokenReader tokenize(String code){
+    public SimpleTokenReader tokenize(String code){
         // 代表这开始，如果不重新进行赋值的话，那么上一句代码解析完的就会影响后面的结果
         tokenText = new StringBuffer();
         tokenList = new ArrayList<>();
@@ -117,8 +138,22 @@ public class SimpleLexer {
                     // switch case 不加 break 的话 那么下面的所有 case 中的语句都会执行，直到遇到第一个 break
                     // 所以等号会到最后一个 break 跳出，遇到符合条件的 char 状态机就会更新，如果不加这个 case 的话状态机就一直不会更新
                     // Assignment => = => break; 空格没有对应的状态机不会进入 switch ；IntLiteral => 1 => 8 => break;
-                    case Assignment:  // 由于之前这里没有加 case 而经过 = 之后状态机一直是 Assignment 然而switch 中没有，所以获取到的后面的 18 都不会在 switch 中进行处理
-
+                    case Assignment:        // 由于之前这里没有加 case 而经过 = 之后状态机一直是 Assignment 然而switch 中没有，所以获取到的后面的 18 都不会在 switch 中进行处理
+                        state = initToken(ch);
+                        break;
+                    case Plus: // 防止 2 + 3 识别不出来
+                        state = initToken(ch);
+                        break;
+                    case Minus:
+                        state = initToken(ch);
+                        break;
+                    case Star:
+                        state = initToken(ch);
+                        break;
+                    case Slash:
+                        state = initToken(ch);
+                        break;
+                    case SemiColon:
                     case IntLiteral:
                         if (isDigit(ch)){
                             tokenText.append(ch);
@@ -258,6 +293,11 @@ public class SimpleLexer {
         // 符号，>= <= > <
         GT,GE, // GE >=
         Assignment, // =
+        Plus, // +
+        SemiColon, // ;
+        Minus,  // -
+        Star,   // *
+        Slash,  // /
 
         // 保留字，int 这里只做int， if else if 这些不去管
         INT, // 识别出来是 int 类型
