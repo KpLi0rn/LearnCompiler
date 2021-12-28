@@ -1,38 +1,47 @@
-package calc;
+package script;
 
-import lexer.SimpleLexer;
-import lexer.Token;
-import lexer.TokenReader;
-import lexer.TokenType;
+import calc.AstNode;
+import calc.AstNodeType;
+import calc.Calculator;
+import calc.SimpleAstNode;
+import lexer.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Collections;
+
 
 @SuppressWarnings("all")
-public class Calculator {
+public class SimpleParser {
+
     private HashMap<String, Integer> variables = new HashMap<String, Integer>();
 
     public static void main(String[] args) throws Exception {
-        String code = "2*3+4+5*5";
-        Calculator calculator = new Calculator();
-        calculator.evaluate(code);
-    }
+//        String code = "2*3+4+5*5;";
+//        SimpleParser parser = new SimpleParser();
+//        parser.evaluate(code);
 
-    /**
-     * 利用词法分析器来处理传入的代码，处理成 tokens
-     * 然后调用 addition 表达式来进行处理
-     * 加法表达式 => 乘法表达式 => 基础表达式
-     * 这些表达式都是通过深度遍历进行递归处理，直到找到终结符，即元素不可再拆分
-     */
+//        String code = "int num=2*3+4+5*6;";
+//        SimpleParser parser = new SimpleParser();
+//        parser.evaluate(code);
+
+//        String code = "num=2*3+4+5*5;";
+//        SimpleParser parser = new SimpleParser();
+//        parser.evaluate(code);
+
+    }
 
     public void evaluate(String code) throws Exception {
         AstNode node = parse(code);
         dumpAST(node,"");
+        System.out.println("\n=================\n");
         evaluate(node,"");
     }
 
+    /**
+     * 针对表达式的入口
+     * @param code
+     * @return
+     * @throws Exception
+     */
     public AstNode parse(String code) throws Exception {
         SimpleLexer simpleLexer = new SimpleLexer();
         TokenReader tokens = simpleLexer.tokenize(code);
@@ -40,14 +49,25 @@ public class Calculator {
         return node;
     }
 
-    public AstNode prog(TokenReader tokens) throws Exception {
-        // 创建根节点并调用 加法表达式
-        SimpleAstNode bootNode = new SimpleAstNode(AstNodeType.Programm,"Calculator");
-        SimpleAstNode child = additive(tokens);
-        if (child != null){
-            bootNode.addChildren(child);
+    /**
+     * 针对不同 token 进行特殊化的处理
+     * @param tokens
+     * @return
+     * @throws Exception
+     */
+    public SimpleAstNode prog(TokenReader tokens) throws Exception {
+        SimpleAstNode node = null;
+        Token token = tokens.peek(); // 进行预读，我这里主要是两种场景，ID 和 关键字
+        if (token != null){
+            if (token.getType().equals(TokenType.Identifier)){        // 变量
+                node = assignmentStatement(tokens);
+            }else if (token.getType().equals(TokenType.Int)){        // int 关键字
+                node = intDeclare(tokens);
+            }else if (token.getType().equals(TokenType.IntLiteral)){ // 纯数字直接进行计算
+                node = additive(tokens);
+            }
         }
-        return bootNode;
+        return node;
     }
 
     public int evaluate(AstNode node,String indent) throws Exception{
@@ -56,23 +76,9 @@ public class Calculator {
         AstNodeType type = node.getType();
         System.out.println(indent + "Calculating: " + type);
         switch (type){
-            case Programm:
+            case Identifier:
                 for(AstNode child:node.getChildren()){
                     result = evaluate(child,indent + "\t");
-                }
-                break;
-            case Identifier:
-                String varName = node.getText();
-                if (variables.containsKey(varName)) {
-                    Integer value = variables.get(varName);
-                    if (value != null) {
-                        result = value.intValue();
-                    } else {
-                        throw new Exception("variable " + varName + " has not been set any value");
-                    }
-                }
-                else{
-                    throw new Exception("unknown variable: " + varName);
                 }
                 break;
             case Additive:
@@ -98,13 +104,90 @@ public class Calculator {
             case IntLiteral:
                 result = Integer.valueOf(node.getText()).intValue();
                 break;
-//            case Identifier:
-//                result = Integer.valueOf(node.getText()).intValue();
-//                break;
             default:
         }
         System.out.println(indent + "Result: " + result);
         return result;
+    }
+
+    /**
+     * 处理变量赋值情况
+     *  num = 3*5;
+     *  num
+     * @param tokens
+     * @return
+     * @throws Exception
+     */
+    public SimpleAstNode assignmentStatement(TokenReader tokens) throws Exception{
+        SimpleAstNode node = null;
+        SimpleToken token = (SimpleToken) tokens.peek(); // 首先进行预读
+        if (token != null && token.getType().equals(TokenType.Identifier)){
+            tokens.read(); // 对变量进行消耗
+            node = new SimpleAstNode(AstNodeType.Identifier,token.getText());
+            token = (SimpleToken) tokens.peek(); // 首先进行预读
+            if (token != null && token.getType().equals(TokenType.Assignment)){ // 判断是否是等号情况
+                // 回朔
+                tokens.read(); // 对等号进行消耗
+//                token = (SimpleToken) tokens.peek(); // 直接对等号后面对表达
+                SimpleAstNode child = additive(tokens);
+                if (child != null){
+                    node.addChildren(child);
+                    token = (SimpleToken) tokens.peek(); // 首先进行预读
+                    if (token != null && token.getType().equals(TokenType.SemiColon)){ // 如果最后一个是分号的话
+                        tokens.read();
+                    }else{
+                        // 抛出报错，需要 ； 结尾
+                        throw new Exception("invalid statement, expecting semicolon");
+                    }
+                }
+            }else {
+                tokens.unread();
+                node = null;
+            }
+        }
+        return  node;
+    }
+
+    /**
+     * 处理 int num=1+1+1;的情况
+     * @param tokens
+     * @return
+     * @throws Exception
+     */
+    public SimpleAstNode intDeclare(TokenReader tokens) throws Exception{
+        SimpleAstNode node = null;
+        SimpleToken token = (SimpleToken) tokens.peek();
+        if (token.getType().equals(TokenType.Int)){
+            tokens.read(); // 消耗
+            token = (SimpleToken) tokens.peek();
+            if (token != null && token.getType().equals(TokenType.Identifier)){
+                tokens.read();
+                node = new SimpleAstNode(AstNodeType.Identifier,token.getText()); // num 为根节点
+                token = (SimpleToken) tokens.peek();
+                if (token != null && token.getType().equals(TokenType.Assignment)){
+                    int position = tokens.getPosition();
+                    tokens.read();
+                    SimpleAstNode child = additive(tokens);
+                    if (child != null) {
+                        node.addChildren(child);
+                        token = (SimpleToken) tokens.peek();
+                        if (token != null && token.getType().equals(TokenType.SemiColon)) {
+                            tokens.read();
+                        } else {
+                            throw new Exception("invalid statement, expecting semicolon");
+                        }
+                    }
+//                    }else {
+//                        node = null;
+//                        tokens.setPosition(position); // 对初始位置进行回朔
+//                    }
+                }else {
+                    tokens.unread();
+                    node = null;
+                }
+            }
+        }
+        return node;
     }
 
 
@@ -138,37 +221,11 @@ public class Calculator {
     }
 
     /**
-     * 右递归
-     */
-
-//    public SimpleAstNode additive(TokenReader tokens) throws Exception{
-//        // multiplicative + add  , multiplicative 到最后为 int ，相当于 int + addexpression => 右递归
-//        SimpleAstNode child1 = multiplicative(tokens);
-//        SimpleAstNode node = child1; // 乘法子树
-//        Token token = tokens.peek();
-//        if (token != null && child1 != null){
-//            if (token.getType() == TokenType.Plus) { // 如果是 + 号
-//                token = tokens.read(); // 对加号进行消耗
-//                SimpleAstNode child2 = additive(tokens); //
-//                if (child2 != null){
-//                    node = new SimpleAstNode(AstNodeType.Additive, token.getText()); // 创建 * 的节点，反之返回树，学到了
-//                    node.addChildren(child1);
-//                    node.addChildren(child2);
-//                }else {
-//                    throw new Exception("invalid multiplicative expression, expecting the right part.");
-//                }
-//            }
-//        }
-//        return node;
-//    }
-
-    /**
      * 乘法表达式
      * @param tokens
      * @return
      */
     public SimpleAstNode multiplicative(TokenReader tokens) throws Exception{
-        // 1*2*3
         SimpleAstNode child1 = primary(tokens); // 1
         SimpleAstNode node = child1; // 递归的思想，如果读到最里面了 就返回 int，
         Token token = tokens.peek();
@@ -209,50 +266,6 @@ public class Calculator {
         }
         return node;
     }
-
-
-    /**
-     * 创建了一个 Ast节点，属性：类型、数值、父节点、子节点、添加节点
-     */
-//    class SimpleAstNode implements AstNode{
-//
-//        private AstNodeType type = null;
-//        private String text = null;
-//        private AstNode parent = null; // 只有一个父节点
-//        private List<AstNode> childrens = new ArrayList<>();
-//        private List<AstNode> readOnlyChildrens = Collections.unmodifiableList(childrens);  // 创建一个可读的列表
-//
-//
-//        public SimpleAstNode(AstNodeType type, String text) {
-//            this.type = type;
-//            this.text = text;
-//        }
-//
-//        @Override
-//        public AstNode getParent() {
-//            return parent;
-//        }
-//
-//        @Override
-//        public List<AstNode> getChildren() {
-//            return readOnlyChildrens;
-//        }
-//
-//        @Override
-//        public AstNodeType getType() {
-//            return type;
-//        }
-//
-//        @Override
-//        public String getText() {
-//            return text;
-//        }
-//
-//        public void addChildren(SimpleAstNode child){
-//            childrens.add(child); // 我之前为什么要多此一举...
-//            child.parent = this;
-//        }
-//    }
 
     public void dumpAST(AstNode node, String indent) {
         System.out.println(indent + node.getType() + " " + node.getText());

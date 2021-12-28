@@ -1,68 +1,111 @@
 package script;
 
+import calc.AstNode;
 import calc.AstNodeType;
 import calc.Calculator;
 import calc.SimpleAstNode;
 import lexer.*;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+
 
 public class MyScript {
 
+    private HashMap<String,Integer> variables = new HashMap();
+
     public static void main(String[] args) throws Exception{
-        /**
-         * 实现自己的脚本语言
-         * int num = 2*3;
-         * num+8;
-         */
-        SimpleLexer lexer = new SimpleLexer();
-        String code = "int num = 2+3;";
-        System.out.println("parse :" + code);
-        SimpleTokenReader tokenReader = lexer.tokenize(code);
-//        SimpleLexer.dump(tokenReader);
-        MyScript script = new MyScript();
-        SimpleAstNode node = script.assignmentStatement(tokenReader);
+        System.out.println("Simple script language!");
+        SimpleParser parser = new SimpleParser();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        Calculator calculator = new Calculator();
-        calculator.dumpAST(node,"");
-        calculator.evaluate(node,"");
-    }
+        StringBuilder scriptText = new StringBuilder();
+        System.out.print("\n>");   //提示符
 
-    /**
-     * 解析赋值语句
-     * @param tokens
-     * @throws Exception
-     */
-    public SimpleAstNode assignmentStatement(SimpleTokenReader tokens) throws Exception{
-        SimpleAstNode node = null;
-        SimpleToken token = (SimpleToken) tokens.peek();
-        if (token.getType().equals(TokenType.Int)){
-            tokens.read(); // 消耗
-            token = (SimpleToken) tokens.peek();
-            if (token != null && token.getType().equals(TokenType.Identifier)){
-                tokens.read();
-                node = new SimpleAstNode(AstNodeType.Identifier,token.getText()); // num 为根节点
-                token = (SimpleToken) tokens.peek();
-                if (token != null && token.getType().equals(TokenType.Assignment)){
-                    int position = tokens.getPosition();
-                    tokens.read();
-                    Calculator calculator = new Calculator();
-                    SimpleAstNode child = calculator.additive(tokens);
-                    if (child != null){
-                        node.addChildren(child);
-                        token = (SimpleToken) tokens.peek();
-                        // 检测到分号语句结束
-                        if (token != null && token.getType().equals(TokenType.SemiColon)){
-                            tokens.read();
-                        }else {
-                            throw new Exception("invalid statement, expecting semicolon");
-                        }
-                    }else {
-                        node = null;
-                        tokens.setPosition(position); // 对初始位置进行回朔
-                    }
+        while (true) {
+            try {
+                String line = reader.readLine().trim();
+                if (line.equals("exit();")) {
+                    System.out.println("good bye!");
+                    break;
                 }
+                scriptText.append(line).append("\n");
+                if (line.endsWith(";")) {
+                    // 主要的两行
+                    AstNode tree = parser.parse(scriptText.toString());
+
+                    parser.evaluate(tree, "");
+
+                    System.out.print("\n>");   //提示符
+
+                    scriptText = new StringBuilder();
+                }
+
+            } catch (Exception e) {
+                System.out.println(e.getLocalizedMessage());
+                System.out.print("\n>");   //提示符
+                scriptText = new StringBuilder();
             }
         }
-        return node;
     }
+
+
+
+
+
+    public int evaluate(AstNode node, String indent) throws Exception{
+        int result = 0;
+        AstNodeType type = node.getType();
+//        System.out.println(indent + "Calculating: " + type);
+        switch (type){
+            case Programm:
+                for(AstNode child:node.getChildren()){
+                    result = evaluate(child,indent + "\t");
+                }
+                break;
+            case Identifier:
+                String varName = node.getText();
+                if (variables.get(varName) != null){
+                    Integer value = variables.get(varName);
+                    if (value != null) {
+                        result = value.intValue();
+                    }else {
+                        throw new Exception("variable " + varName + " has not been set any value");
+                    }
+                }else {
+                    for(AstNode child:node.getChildren()){
+                        result = evaluate(child,indent + "\t");
+                    }
+                }
+                break;
+            case Additive:
+                AstNode child1 = node.getChildren().get(0);
+                // 不断进行递归求解
+                int value1 = evaluate(child1,indent + "\t"); // 计算当前节点下的所有值的和
+                AstNode child2 = node.getChildren().get(1);
+                int value2 = evaluate(child2,indent + "\t");
+                if (node.getText().equals("+")){ // 递归最后运算对逻辑
+                    result = value1+value2;
+                }
+                break;
+            case Multiplicative:
+                child1 = node.getChildren().get(0);
+                value1 = evaluate(child1,indent + "\t");
+                child2 = node.getChildren().get(1);
+                value2 = evaluate(child2,indent + "\t");
+                if (node.getText().equals("*")){ // 递归最后运算对逻辑
+                    result = value1 * value2;
+                }
+                break;
+            case IntLiteral:
+                result = Integer.valueOf(node.getText()).intValue();
+                break;
+            default:
+        }
+//        System.out.println(indent + "Result: " + result);
+        return result;
+    }
+
+
 }
