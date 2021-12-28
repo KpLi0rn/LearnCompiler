@@ -13,11 +13,11 @@ import java.util.HashMap;
 public class SimpleParser {
 
     private HashMap<String, Integer> variables = new HashMap<String, Integer>();
-
+    private String varName = null;
     public static void main(String[] args) throws Exception {
-//        String code = "2*3+4+5*5;";
-//        SimpleParser parser = new SimpleParser();
-//        parser.evaluate(code);
+        String code = "int num=1+2+3;num;";
+        SimpleParser parser = new SimpleParser();
+        parser.evaluate(code);
 
 //        String code = "int num=2*3+4+5*6;";
 //        SimpleParser parser = new SimpleParser();
@@ -70,15 +70,28 @@ public class SimpleParser {
         return node;
     }
 
+    /**
+     * 需要处理变量赋值的问题
+     * @param node
+     * @param indent
+     * @return
+     * @throws Exception
+     */
+
     public int evaluate(AstNode node,String indent) throws Exception{
         // 求最终结果
         int result = 0;
         AstNodeType type = node.getType();
-        System.out.println(indent + "Calculating: " + type);
+//        System.out.println(indent + "Calculating: " + type);
         switch (type){
             case Identifier:
-                for(AstNode child:node.getChildren()){
-                    result = evaluate(child,indent + "\t");
+                varName = node.getText();
+                if (variables.containsKey(varName)){ // 如果存在就从里面取出来
+                    result = variables.get(varName);
+                }else {
+                    for(AstNode child:node.getChildren()){
+                        result = evaluate(child,indent + "\t");
+                    }
                 }
                 break;
             case Additive:
@@ -101,12 +114,34 @@ public class SimpleParser {
                     result = value1 * value2;
                 }
                 break;
+            case AssignmentStmt:
+                varName = node.getText();
+                if (varName == null) {
+                    throw new Exception("unknown variable: " + varName);
+                }
+                break;
             case IntLiteral:
-                result = Integer.valueOf(node.getText()).intValue();
+//                varName = node.getText();
+//                result = Integer.valueOf(varName).intValue();
+//                variables.put(varName,result);
+                if (varName == null){
+                    result = Integer.valueOf(node.getText()).intValue();
+                    variables.put(varName,result);
+                }else {
+                    result = Integer.valueOf(node.getText()).intValue();
+                    int value;
+                    try {
+                        value = variables.get(varName);
+                    }catch (NullPointerException e){
+                        value = 0;
+                    }
+                    value = value+result;
+                    variables.put(varName,value);
+                }
                 break;
             default:
         }
-        System.out.println(indent + "Result: " + result);
+//        System.out.println(indent + "Result: " + result);
         return result;
     }
 
@@ -142,7 +177,7 @@ public class SimpleParser {
                 }
             }else {
                 tokens.unread();
-                node = null;
+//                node = null;
             }
         }
         return  node;
@@ -177,6 +212,7 @@ public class SimpleParser {
                             throw new Exception("invalid statement, expecting semicolon");
                         }
                     }
+                    // 个人感觉这里也需要添加回朔
 //                    }else {
 //                        node = null;
 //                        tokens.setPosition(position); // 对初始位置进行回朔
