@@ -1,4 +1,4 @@
-package class2
+package lexer
 
 var (
 	tokenText []rune // 保存临时的数据 ,我这个要数组然后一个个添加
@@ -55,6 +55,22 @@ func initToken(ch rune) string {
 		state = DfaState2Str[SemiColon]
 		token.Type = TokenType2Str[SemiColon]
 		tokenText = append(tokenText, ch)
+	}else if ch == '+' {
+		state = DfaState2Str[Plus]
+		token.Type = TokenType2Str[Plus]
+		tokenText = append(tokenText, ch)
+	}else if ch == '-' {
+		state = DfaState2Str[Minus]
+		token.Type = TokenType2Str[Minus]
+		tokenText = append(tokenText, ch)
+	}else if ch == '*' {
+		state = DfaState2Str[Star]
+		token.Type = TokenType2Str[Star]
+		tokenText = append(tokenText, ch)
+	}else if ch == '/' {
+		state = DfaState2Str[Slash]
+		token.Type = TokenType2Str[Slash]
+		tokenText = append(tokenText, ch)
 	}
 	return state
 }
@@ -62,7 +78,7 @@ func initToken(ch rune) string {
 /**
 	返回的应该是一个 Token ，然后我们可以定义一个 reader 去接受
 */
-func Tokenize(code string) []SimpleToken {
+func Tokenize(code string) *SimpleTokenReader {
 
 	// 变量初始化
 	tokenText = nil
@@ -83,6 +99,18 @@ func Tokenize(code string) []SimpleToken {
 			fallthrough
 		case "GE":
 			fallthrough
+		case "Plus":   // +
+			state = initToken(ch)
+			break
+		case "Minus":  // -
+			state = initToken(ch)
+			break
+		case "Star":   // *
+			state = initToken(ch)
+			break
+		case "Slash":  // /
+			state = initToken(ch)
+			break
 		case "Identifier":
 			if isDigit(ch) || isAlpha(ch){
 				tokenText = append(tokenText, ch)
@@ -150,5 +178,5 @@ func Tokenize(code string) []SimpleToken {
 	if len(tokenText) >0 {
 		initToken(ch)
 	}
-	return tokenList
+	return NewSimpleTokenReader(tokenList);
 }

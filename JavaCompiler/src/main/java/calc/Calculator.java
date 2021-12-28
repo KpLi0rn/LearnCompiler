@@ -13,7 +13,7 @@ import java.util.Collections;
 public class Calculator {
 
     public static void main(String[] args) throws Exception {
-        String code = "2+3+4+5";
+        String code = "2*3+4+5*5";
         Calculator calculator = new Calculator();
         calculator.evaluate(code);
 
