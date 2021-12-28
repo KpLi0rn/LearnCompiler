@@ -10,7 +10,7 @@ import (
 )
 
 func run(){
-	code := "2+3*5+3+4"
+	code := "8-4"
 	calc := NewMyCalculator()
 	calc.Evaluate(code)
 }
@@ -72,6 +72,8 @@ func (c *MyCalculator) EvaluateAll(node ast.AstNode) int {
 		value2 := c.EvaluateAll(child2)
 		if node.GetText() == "+" {
 			result = value1 + value2
+		}else if node.GetText() == "-" {
+			result = value1 - value2
 		}
 		break
 	case ast.Multiplicative:
@@ -81,6 +83,8 @@ func (c *MyCalculator) EvaluateAll(node ast.AstNode) int {
 		value2 := c.EvaluateAll(child2)
 		if node.GetText() == "*" {
 			result = value1 * value2
+		}else if node.GetText() == "/" {
+			result = value1 / value2
 		}
 		break
 	case ast.IntLiteral:
@@ -90,16 +94,16 @@ func (c *MyCalculator) EvaluateAll(node ast.AstNode) int {
 	return result
 }
 
-func (c *MyCalculator)Additive(reader *lexer.SimpleTokenReader) ast.AstNode {
+func (c *MyCalculator) Additive(reader *lexer.SimpleTokenReader) ast.AstNode {
 	child1 := c.Multiplicative(reader)
 	node := child1
-	if child1 != ast.NullNode(){
+	if child1 != ast.NullNode() {
 		for{
-			token := reader.Peek()
-			if token != lexer.NullToken() && token.GetType() == lexer.TokenType2Str[lexer.Plus] {
+			token := reader.Peek() // 预读
+			if token != lexer.NullToken() && (token.GetType() == lexer.TokenType2Str[lexer.Plus] || token.GetType() == lexer.TokenType2Str[lexer.Minus]){
 				token = reader.Read()
 				child2 := c.Multiplicative(reader)
-				node = ast.NewSimpleAstNode(ast.Additive,token.GetText())
+				node = ast.NewSimpleAstNode(ast.Additive,token.GetText()) // +
 				node.AddChild(child1)
 				node.AddChild(child2)
 				child1 = node
@@ -117,7 +121,7 @@ func (c *MyCalculator)Multiplicative(reader *lexer.SimpleTokenReader) ast.AstNod
 	node := child1
 	token := reader.Peek()
 	if token != lexer.NullToken() && node != ast.NullNode() {
-		if token.GetType() == lexer.TokenType2Str[lexer.Star] {
+		if token.GetType() == lexer.TokenType2Str[lexer.Star] || token.GetType() == lexer.TokenType2Str[lexer.Slash] {
 			token = reader.Read()
 			child2 := c.Multiplicative(reader) // 这里顺序有点问题 之前写错了
 			if child2 != nil {
