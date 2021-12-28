@@ -16,7 +16,6 @@ public class Calculator {
         String code = "2*3+4+5*5";
         Calculator calculator = new Calculator();
         calculator.evaluate(code);
-
     }
 
     /**
@@ -54,9 +53,13 @@ public class Calculator {
         int result = 0;
         AstNodeType type = node.getType();
         System.out.println(indent + "Calculating: " + type);
-
         switch (type){
             case Programm:
+                for(AstNode child:node.getChildren()){
+                    result = evaluate(child,indent + "\t");
+                }
+                break;
+            case Identifier:
                 for(AstNode child:node.getChildren()){
                     result = evaluate(child,indent + "\t");
                 }
@@ -84,6 +87,9 @@ public class Calculator {
             case IntLiteral:
                 result = Integer.valueOf(node.getText()).intValue();
                 break;
+//            case Identifier:
+//                result = Integer.valueOf(node.getText()).intValue();
+//                break;
             default:
         }
         System.out.println(indent + "Result: " + result);
@@ -197,47 +203,47 @@ public class Calculator {
     /**
      * 创建了一个 Ast节点，属性：类型、数值、父节点、子节点、添加节点
      */
-    class SimpleAstNode implements AstNode{
+//    class SimpleAstNode implements AstNode{
+//
+//        private AstNodeType type = null;
+//        private String text = null;
+//        private AstNode parent = null; // 只有一个父节点
+//        private List<AstNode> childrens = new ArrayList<>();
+//        private List<AstNode> readOnlyChildrens = Collections.unmodifiableList(childrens);  // 创建一个可读的列表
+//
+//
+//        public SimpleAstNode(AstNodeType type, String text) {
+//            this.type = type;
+//            this.text = text;
+//        }
+//
+//        @Override
+//        public AstNode getParent() {
+//            return parent;
+//        }
+//
+//        @Override
+//        public List<AstNode> getChildren() {
+//            return readOnlyChildrens;
+//        }
+//
+//        @Override
+//        public AstNodeType getType() {
+//            return type;
+//        }
+//
+//        @Override
+//        public String getText() {
+//            return text;
+//        }
+//
+//        public void addChildren(SimpleAstNode child){
+//            childrens.add(child); // 我之前为什么要多此一举...
+//            child.parent = this;
+//        }
+//    }
 
-        private AstNodeType type = null;
-        private String text = null;
-        private AstNode parent = null; // 只有一个父节点
-        private List<AstNode> childrens = new ArrayList<>();
-        private List<AstNode> readOnlyChildrens = Collections.unmodifiableList(childrens);  // 创建一个可读的列表
-
-
-        public SimpleAstNode(AstNodeType type, String text) {
-            this.type = type;
-            this.text = text;
-        }
-
-        @Override
-        public AstNode getParent() {
-            return parent;
-        }
-
-        @Override
-        public List<AstNode> getChildren() {
-            return readOnlyChildrens;
-        }
-
-        @Override
-        public AstNodeType getType() {
-            return type;
-        }
-
-        @Override
-        public String getText() {
-            return text;
-        }
-
-        public void addChildren(SimpleAstNode child){
-            childrens.add(child); // 我之前为什么要多此一举...
-            child.parent = this;
-        }
-    }
-
-    private void dumpAST(AstNode node, String indent) {
+    public void dumpAST(AstNode node, String indent) {
         System.out.println(indent + node.getType() + " " + node.getText());
         for (AstNode child : node.getChildren()) {
             dumpAST(child, indent + "\t");

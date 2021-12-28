@@ -1,0 +1,3 @@
+扩展巴科斯范式
+
+intDeclaration : 'int' Id ('=' additiveExpression)? ';';

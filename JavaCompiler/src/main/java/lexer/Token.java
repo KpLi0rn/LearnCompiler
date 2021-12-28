@@ -7,4 +7,6 @@ public interface Token {
      */
     public TokenType getType();
     public String getText();
+    public void setType(TokenType tokenType);
+    public void setText(String text);
 }

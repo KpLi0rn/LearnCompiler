@@ -8,8 +8,4 @@ func TestTokenize(t *testing.T) {
 	code := "2+3*5-3/8"
 	tokenReader := Tokenize(code)
 	Dump(tokenReader)
-
-	//for _,value := range list{
-	//	fmt.Println(value.GetType(),value.GetText())
-	//}
 }
