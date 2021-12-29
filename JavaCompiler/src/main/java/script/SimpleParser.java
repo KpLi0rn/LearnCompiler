@@ -126,7 +126,7 @@ public class SimpleParser {
 //                variables.put(varName,result);
                 if (varName == null){
                     result = Integer.valueOf(node.getText()).intValue();
-                    variables.put(varName,result);
+//                    variables.put(varName,result);
                 }else {
                     result = Integer.valueOf(node.getText()).intValue();
                     int value;

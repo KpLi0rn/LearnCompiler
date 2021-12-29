@@ -9,10 +9,17 @@ import (
 	"strconv"
 )
 
+var (
+	varName = ""
+	variables = make(map[string]int)
+)
+
 func run(){
 	code := "num=1+2+3*6;"
 	parse := NewSimpleParser()
 	parse.Evaluate(code)
+
+	// 要实现一个命令行的脚本
 }
 
 type SimpleParser interface {
@@ -29,7 +36,8 @@ type MySimpleParser struct {
 }
 
 func NewSimpleParser() *MySimpleParser{
-	return &MySimpleParser{}
+	return &MySimpleParser{
+	}
 }
 
 func (c *MySimpleParser)Evaluate(code string){
@@ -39,12 +47,7 @@ func (c *MySimpleParser)Evaluate(code string){
 	fmt.Println(fmt.Sprintf("Result: %d",result))
 }
 
-/**
-	根据不同情况的输入来做选择
-	int num =1+2+3;
-	num =1+2+3;
-	1+2+3;
- */
+
 func (c *MySimpleParser)Parse(code string) ast.AstNode {
 	var node ast.AstNode
 	tokens := lexer.Tokenize(code)
@@ -74,12 +77,24 @@ func (c *MySimpleParser) EvaluateAll(node ast.AstNode) int {
 	result := 0
 	switch node.GetType() {
 	case ast.Identifier:
-		for _,child := range node.GetChilds(){
-			result = c.EvaluateAll(child)
+		varName = node.GetText()
+		// if varName exist
+		if _,ok := variables[varName]; ok {
+			result = variables[varName]
+		}else {
+			for _,child := range node.GetChilds(){
+				result = c.EvaluateAll(child)
+			}
 		}
 		break
 		// 加法表达式
 	case ast.AssignmentStmt:
+		if node.GetText() != "" {
+			varName = node.GetText()
+			variables[varName] = 0
+		}else {
+			errors.New(fmt.Sprintf("unknown variable: %s\n",varName))
+		}
 		break
 	case ast.Additive:
 		child1 := node.GetChilds()[0] // 如果有子集
@@ -104,7 +119,14 @@ func (c *MySimpleParser) EvaluateAll(node ast.AstNode) int {
 		}
 		break
 	case ast.IntLiteral:
+		// num = xxx
+		// 1+2+3+4+5..;
 		result,_ = strconv.Atoi(node.GetText())
+		if varName != "" { // 如果变量存在就从变量表里面进行获取
+			value,_ := variables[varName]
+			value = result + value
+			variables[varName] = value
+		}
 		break
 	}
 	return result
