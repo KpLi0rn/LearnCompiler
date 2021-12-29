@@ -5,7 +5,7 @@ import (
 )
 
 func TestTokenize(t *testing.T) {
-	code := "2+3*5-3/8"
+	code := "int num=1+2+3;"
 	tokenReader := Tokenize(code)
 	Dump(tokenReader)
 }

@@ -177,7 +177,7 @@ public class SimpleParser {
                 }
             }else {
                 tokens.unread();
-//                node = null;
+//                node = null; // 这里不注释的话，单独输入 num 获取变量的时候就会返回 null 导致获取不到 node
             }
         }
         return  node;

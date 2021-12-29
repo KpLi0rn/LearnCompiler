@@ -42,6 +42,12 @@ func (s *SimpleTokenReader) Read() SimpleToken{
 	return NullToken()
 }
 
+func (s *SimpleTokenReader) UnRead() {
+	if s.position >= 0 {
+		s.position --
+	}
+}
+
 func Dump(reader *SimpleTokenReader){
 	for _,token := range reader.tokens{
 		fmt.Println(fmt.Sprintf("%s\t%s",token.GetType(),token.GetText()))
