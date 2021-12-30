@@ -138,7 +138,7 @@ public class Calculator {
     }
 
     /**
-     * 右递归
+     * 右递归，左递归换一下 additive 和 multiplicative 然后需要换一下判断条件 但是这样会导致死循环，即不断调用自身，
      */
 
 //    public SimpleAstNode additive(TokenReader tokens) throws Exception{
