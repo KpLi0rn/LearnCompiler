@@ -11,8 +11,6 @@ import java.util.HashMap;
 
 public class MyScript {
 
-    private HashMap<String,Integer> variables = new HashMap();
-
     public static void main(String[] args) throws Exception{
         System.out.println("Simple script language!");
         SimpleParser parser = new SimpleParser();
@@ -50,63 +48,5 @@ public class MyScript {
             }
         }
     }
-
-
-
-
-
-//    public int evaluate(AstNode node, String indent) throws Exception{
-//        int result = 0;
-//        AstNodeType type = node.getType();
-////        System.out.println(indent + "Calculating: " + type);
-//        switch (type){
-//            case Programm:
-//                for(AstNode child:node.getChildren()){
-//                    result = evaluate(child,indent + "\t");
-//                }
-//                break;
-//            case Identifier:
-//                String varName = node.getText();
-//                if (variables.get(varName) != null){
-//                    Integer value = variables.get(varName);
-//                    if (value != null) {
-//                        result = value;
-//                    }else {
-//                        throw new Exception("variable " + varName + " has not been set any value");
-//                    }
-//                }else {
-//                    for(AstNode child:node.getChildren()){
-//                        result = evaluate(child,indent + "\t");
-//                    }
-//                }
-//                break;
-//            case Additive:
-//                AstNode child1 = node.getChildren().get(0);
-//                // 不断进行递归求解
-//                int value1 = evaluate(child1,indent + "\t"); // 计算当前节点下的所有值的和
-//                AstNode child2 = node.getChildren().get(1);
-//                int value2 = evaluate(child2,indent + "\t");
-//                if (node.getText().equals("+")){ // 递归最后运算对逻辑
-//                    result = value1+value2;
-//                }
-//                break;
-//            case Multiplicative:
-//                child1 = node.getChildren().get(0);
-//                value1 = evaluate(child1,indent + "\t");
-//                child2 = node.getChildren().get(1);
-//                value2 = evaluate(child2,indent + "\t");
-//                if (node.getText().equals("*")){ // 递归最后运算对逻辑
-//                    result = value1 * value2;
-//                }
-//                break;
-//            case IntLiteral:
-//                result = Integer.valueOf(node.getText()).intValue();
-//                break;
-//            default:
-//        }
-////        System.out.println(indent + "Result: " + result);
-//        return result;
-//    }
-
 
 }

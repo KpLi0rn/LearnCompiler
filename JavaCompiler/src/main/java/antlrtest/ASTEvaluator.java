@@ -10,6 +10,13 @@ import antlrtest.PlayScriptParser.PrimaryExpressionContext;
  */
 public class ASTEvaluator extends PlayScriptBaseVisitor<Integer> {
 
+    /**
+     * 相当于最后面的那个 switch case 根据不同表达式来进行不同的运算
+     * 相当于遍历树节点的每个 node 然后根据node的对应类型进行运算
+     * @param ctx
+     * @return
+     */
+
     @Override
     public Integer visitAdditiveExpression(AdditiveExpressionContext ctx) {
         if (ctx.ADD() != null || ctx.SUB() != null) {
