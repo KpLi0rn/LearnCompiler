@@ -50,6 +50,7 @@ public class Calculator {
         return bootNode;
     }
 
+    // 递归下降法
     public int evaluate(AstNode node,String indent) throws Exception{
         // 求最终结果
         int result = 0;
