@@ -49,4 +49,59 @@ public class AnnotatedTree {
         }
         return rtn;
     }
+
+    /**
+     * 递归从作用域中进行寻找，如果当前作用域中找不到那么就到上级作用域进行寻找
+     * @param scope
+     * @param idName
+     * @return
+     */
+    public Variable lookupVariable(Scope scope,String idName){
+        Variable variable = scope.getVariable(idName);
+        if (variable == null && scope.enclosingScope != null){
+            variable = lookupVariable(scope.enclosingScope,idName);
+        }
+        return variable;
+    }
+
+    /**
+     * 从函数作用域中寻找函数
+     */
+    public FunctionScope lookupFunction(Scope scope, String idName, List<Type> paramTypes){
+        FunctionScope rtn = scope.getFunction(idName, paramTypes);
+
+        if (rtn == null && scope.enclosingScope != null) {
+            rtn = lookupFunction(scope.enclosingScope, idName, paramTypes);
+        }
+        return rtn;
+    }
+
+    protected FunctionScope lookupFunction(Scope scope, String name){
+        FunctionScope rtn = null;
+
+        rtn = getFunctionOnlyByName(scope, name);
+
+
+        if (rtn == null && scope.enclosingScope != null){
+            rtn = lookupFunction(scope.enclosingScope,name);
+        }
+        return rtn;
+    }
+
+
+    private FunctionScope getFunctionOnlyByName(Scope scope, String name){
+        for (Symbol s : scope.symbols){
+            if (s instanceof FunctionScope && s.name.equals(name)){
+                return  (FunctionScope)s;
+            }
+        }
+        return  null;
+    }
+
+
+
+
+
+
+
 }

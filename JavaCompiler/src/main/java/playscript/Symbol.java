@@ -7,7 +7,7 @@ public abstract class Symbol {
 
     protected String name = null;
 
-    // 同样的也不知道是什么 先预留着
+    // 所属的作用域
     protected Scope enclosingScope = null;
 
     // 作用域所对应的 ast 上的节点

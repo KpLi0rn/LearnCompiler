@@ -7,10 +7,37 @@ package playscript;
 public class TypeResolver extends PlayScriptBaseListener{
 
     private AnnotatedTree at = null;
+    // 是否需要将变量添加到符号表
+    private boolean enterLocalVariable = false;
 
-    public TypeResolver(AnnotatedTree at){
+
+    public TypeResolver(AnnotatedTree at) {
         this.at = at;
     }
+
+    public TypeResolver(AnnotatedTree at,boolean enterLocalVariable){
+        this.at = at;
+        this.enterLocalVariable = enterLocalVariable;
+    }
+
+
+    // int b = 10 离开变量定义片段
+    @Override
+    public void exitVariableDeclarators(PlayScriptParser.VariableDeclaratorsContext ctx) {
+        Scope scope = at.enclosingScopeOfNode(ctx);
+
+        //Aaaaaaaaaaayou同学请看这里。
+        if (enterLocalVariable ){
+            // 设置变量类型
+            Type type = (Type) at.typeOfNode.get(ctx.typeType());
+
+            for (PlayScriptParser.VariableDeclaratorContext child : ctx.variableDeclarator()) {
+                Variable variable = (Variable) at.symbolOfNode.get(child.variableDeclaratorId());
+                variable.type = type;
+            }
+        }
+    }
+
 
     /**
      * 对变量进行解析
@@ -58,6 +85,8 @@ public class TypeResolver extends PlayScriptBaseListener{
         /**
          * 函数查重
          */
+
+
     }
 
     /**
@@ -74,7 +103,7 @@ public class TypeResolver extends PlayScriptBaseListener{
         /**
          * 如果当前节点的父节点是 FormalParameterContext 那么说明当前节点的变量是我们所需要的
          */
-        if (ctx.parent instanceof PlayScriptParser.FormalParameterContext){
+        if (ctx.parent instanceof PlayScriptParser.FormalParameterContext || enterLocalVariable){
             // 我们就需要去创建一个参数变量
             Variable variable = new Variable(idName,scope,ctx);
             // 暂时还不知道这个 addSymbol 是做什么的
@@ -139,6 +168,8 @@ public class TypeResolver extends PlayScriptBaseListener{
         }
 
     }
+
+
 
 
 }

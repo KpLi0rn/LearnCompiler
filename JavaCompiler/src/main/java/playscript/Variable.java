@@ -20,6 +20,9 @@ public class Variable extends Symbol {
         this.ctx = ctx;
     }
 
-
+    @Override
+    public String toString(){
+        return "Variable " + name + " -> "+ type;
+    }
 
 }

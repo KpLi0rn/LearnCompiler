@@ -38,11 +38,19 @@ public class PlayScriptCompiler {
         walker.walk(scopeScanner,at.ast);
 
         /**
-         * pass: 解析变量函数声明
+         * pass: 解析变量函数声明，这里处理好了基本类型数据，函数传参数，函数返回值, 这里解析的有问题
+         * 但是函数内部好像没有做处理
          */
         TypeResolver typeResolver = new TypeResolver(at);
         walker.walk(typeResolver, at.ast);
 
+        /**
+         * 这一部分是引用的消解，主要是确定变量类型，这一步没有确定变量类型
+         */
+        RefResolver resolver = new RefResolver(at);
+        walker.walk(resolver, at.ast);
+
+//        DumpAst(at);
 
         return at;
     }
@@ -54,7 +62,7 @@ public class PlayScriptCompiler {
     }
 
     public Object Execute(AnnotatedTree at){
-        ASTEvaluator visitor = new ASTEvaluator();
+        ASTEvaluator visitor = new ASTEvaluator(at);
         Object result = visitor.visit(at.ast);
         return result;
     }
